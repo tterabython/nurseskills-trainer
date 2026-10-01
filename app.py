@@ -29,9 +29,6 @@ st.markdown("""
         background: linear-gradient(135deg, #21867A 0%, #1B6F64 100%);
         box-shadow: 0 6px 15px rgba(42, 157, 143, 0.4);
     }
-    div.stButton > button:active {
-        transform: scale(0.98);
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -42,31 +39,23 @@ st.markdown("---")
 
 # --- SIDEBAR: INTERACTIVE TOOLS ---
 st.sidebar.markdown("### ⏱️ OSCE Pacing Timer")
-st.sidebar.markdown("Practice your station speed under pressure.")
 timer_minutes = st.sidebar.selectbox("Select Station Time:", [5, 10, 15], format_func=lambda x: f"{x} Minutes")
 if st.sidebar.button("Start Practice Timer"):
     with st.sidebar:
-        st.warning(f"⏱️ Timer started for {timer_minutes} minutes! Focus on workflow.")
-        # Visual countdown simulation helper
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        total_seconds = timer_minutes * 60
-        # A quick visual pulse simulation for the user
-        status_text.text("Station Active: Maintain sterile field & communication.")
-        progress_bar.progress(100)
-        st.success("🔔 Time Check Complete!")
+        st.warning(f"⏱️ Timer active for {timer_minutes} minutes!")
+        st.progress(100)
+        st.success("🔔 Station Time Complete!")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📚 Quick Standards")
-st.sidebar.info("• **Safety (40%)**: Critical actions & hygiene\n• **Technique (30%)**: Precision & accuracy\n• **Pacing (30%)**: Efficiency & communication")
+st.sidebar.info("• **Safety (40%):** Critical hygiene & steps\n• **Technique (30%):** Precision & flow\n• **Pacing (30%):** Efficiency & communication")
 
-# --- MAIN INPUT SECTION ---
+# --- INPUT SECTION: TEXT OR VOICE OR FILE ---
 st.markdown("### 🌿 What clinical bottleneck are you tackling today?")
 
-# Quick select pills layout using buttons or text pre-fill
+# Quick select category pills
 col1, col2, col3 = st.columns(3)
 preset_input = ""
-
 with col1:
     if st.button("⏱️ Running out of time"):
         preset_input = "struggling with time on module and pacing"
@@ -77,67 +66,81 @@ with col3:
     if st.button("📋 Assessment sequencing"):
         preset_input = "assessment accuracy and head-to-toe sequencing"
 
-# Text box input (can be pre-filled via quick select or typed manually)
 user_challenge = st.text_input(
     label="Challenge input",
     label_visibility="collapsed",
-    placeholder="e.g., timing on sterile procedure, documentation pacing, assessment accuracy...",
+    placeholder="Type your challenge here...",
     value=preset_input
 )
 
+# --- VOICE RECORDING & FILE UPLOADER SECTION ---
+st.markdown("---")
+col_voice, col_file = st.columns(2)
+
+with col_voice:
+    st.markdown("🎙️ **Voice Note:**")
+    audio_value = st.audio_input("Record hurdle")
+    if audio_value:
+        st.audio(audio_value)
+        user_challenge = "Voice recorded clinical challenge regarding pacing and precision"
+
+with col_file:
+    st.markdown("📎 **Upload Photo / Rubric:**")
+    uploaded_file = st.file_uploader("Upload asset", type=["png", "jpg", "jpeg", "pdf", "docx"], label_visibility="collapsed")
+    if uploaded_file is not None:
+        if uploaded_file.type in ["image/png", "image/jpeg"]:
+            st.image(uploaded_file, caption="Asset Preview", width=200)
+        st.success(f"Attached: {uploaded_file.name}")
+
 # --- DYNAMIC GENERATOR LOGIC ---
+st.markdown("")
 if st.button("✨ Generate Clinical Action Plan", use_container_width=True):
-    if not user_challenge:
-        st.warning("⚠️ Please select a quick tag above or type your challenge so your copilot can map out the solution!")
+    if not user_challenge and not audio_value and not uploaded_file:
+        st.warning("⚠️ Please provide text, record a voice note, or upload a file first!")
     else:
-        with st.spinner("🌿 Synthesizing clinical guidelines against WorldSkills standards..."):
+        with st.spinner("🌿 Synthesizing clinical guidelines..."):
             
             st.success("✨ Custom Clinical Action Plan Ready!")
             
-            # Visual Breakdown Cards using columns
+            # Competency Cards
             st.markdown("### 📊 Competency Focus Areas")
             c1, c2, c3 = st.columns(3)
             with c1:
                 st.markdown("🛡️ **Safety Check**")
-                st.caption("Weight: High (40%)\nFocus on strict hygiene & zero contamination loops.")
+                st.caption("Weight: High (40%)\nStrict hygiene & zero contamination.")
             with c2:
                 st.markdown("⚙️ **Precision**")
-                st.caption("Weight: Solid (30%)\nEliminate micro-hesitations in technique.")
+                st.caption("Weight: Solid (30%)\nEliminate micro-hesitations.")
             with c3:
                 st.markdown("💬 **Communication**")
-                st.caption("Weight: Vital (30%)\nMaintain verbal consent and patient reassurance.")
+                st.caption("Weight: Vital (30%)\nVerbal consent & reassurance.")
 
-            # Dynamic response card
             st.markdown("---")
             st.markdown("### 🎯 Targeted Strategy & Adjustments")
-            st.info(f"**Addressing focus:** *'{user_challenge}'*")
             
-            if "time" in user_challenge.lower() or "timing" in user_challenge.lower() or "speed" in user_challenge.lower() or "pacing" in user_challenge.lower():
+            if "time" in user_challenge.lower() or "timing" in user_challenge.lower() or "speed" in user_challenge.lower():
                 st.markdown("""
-                * ⏱️ **OSCE Pacing Drills:** Break the station down into rigid checkpoints (e.g., 2m Assessment, 4m Intervention, 2m Closing).
-                * 🛡️ **Safety Buffer:** Practice completing the critical safety steps with 90 seconds to spare.
-                * 📋 **Streamlined Flow:** Eliminate backtracking during physical assessments by following a strict systematic order.
+                * ⏱️ **OSCE Pacing Drills:** Break the station down into rigid checkpoints (2m Assessment, 4m Intervention, 2m Closing).
+                * 🛡️️ **Safety Buffer:** Practice completing critical safety steps with 90 seconds to spare.
                 """)
-            elif "sterile" in user_challenge.lower() or "procedure" in user_challenge.lower() or "technique" in user_challenge.lower() or "contamination" in user_challenge.lower():
+            elif "sterile" in user_challenge.lower() or "procedure" in user_challenge.lower() or "contamination" in user_challenge.lower():
                 st.markdown("""
-                * 🧼 **Aseptic Technique Audit:** Run slow-motion repetitions focusing purely on contamination prevention and hand hygiene checkpoints.
-                * 🔍 **Checklist Discipline:** Cross-reference every sub-step against standard clinical rubrics to avoid missed points.
+                * 🧼 **Aseptic Technique Audit:** Run slow-motion repetitions focusing purely on contamination prevention.
+                * 🔍 **Checklist Discipline:** Cross-reference every sub-step against standard clinical rubrics.
                 """)
             else:
                 st.markdown("""
-                * 🎯 **Targeted Skill Isolation:** Dedicate today's session solely to repeating this specific friction point 3 times smoothly.
-                * 📋 **Rubric Alignment:** Check the marking breakdown to ensure communication and patient safety weights are maximized.
-                * 🩺 **Mock Scenario:** Run a mini 5-minute simulation tomorrow focusing only on overcoming this hurdle.
+                * 🎯 **Targeted Skill Isolation:** Dedicate today's session solely to repeating this specific friction point smoothly.
+                * 📋 **Rubric Alignment:** Check the marking breakdown to ensure communication and safety weights are maximized.
                 """)
             
             st.markdown("### 📅 Recommended Next 7 Days")
             st.markdown("""
-            * **Days 1–2:** Isolate and correct the specific technique or timing hitch using slow-motion loops.
+            * **Days 1–2:** Isolate and correct the specific technique or timing hitch.
             * **Days 3–5:** Integrate the fix back into a timed half-scenario run.
             * **Days 6–7:** Full mock clinical simulation under strict evaluation conditions.
             """)
             
-            # Download Plan Option
             plan_text = f"WorldSkills Nursing Action Plan for: {user_challenge}"
             st.download_button(
                 label="📥 Download Action Plan (.txt)",
